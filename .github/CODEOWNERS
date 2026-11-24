@@ -1,2 +1,8 @@
 # Every change needs the code owner's approval before it can merge into main.
-* @afel6
+*                 @afel6
+/.github/         @afel6
+/AGENTS.md        @afel6
+/CLAUDE.md        @afel6
+/GEMINI.md        @afel6
+/pyproject.toml   @afel6
+/uv.lock          @afel6

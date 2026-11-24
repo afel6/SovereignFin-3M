@@ -1,0 +1,72 @@
+# Fast-fail signal, not a security boundary: on `pull_request` GitHub runs this file
+# from the PR's merge commit, so a PR can edit it. The hard gate is code-owner review.
+name: path-guard
+on:
+  pull_request:            # deliberately not pull_request_target; no checkout, no secrets
+    branches: [main]       # no `paths:` filter: a skipped required workflow stays Pending
+permissions:
+  contents: read
+  pull-requests: read
+concurrency:
+  group: path-guard-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  path-guard:
+    name: path-guard       # unique job name = required status check name
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Changed paths must stay inside the author's allowlist
+        env:               # untrusted values via env, never inline ${{ }} in run:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+          CHANGED: ${{ github.event.pull_request.changed_files }}
+        run: |
+          # --- guard start
+          set -euo pipefail
+          set -f                                   # no globbing of allowlist words
+          LEAD="afel6"
+          # One line per contributor: replace each MN_LOGIN with that member's GitHub login.
+          # Placeholders contain "_", which GitHub logins cannot, so they never match.
+          # Prefixes MUST end with "/".
+          case "$AUTHOR" in
+            "$LEAD")  exit 0 ;;
+            M2_LOGIN) allow="data_pipeline/clean/ database/tenk/" ;;
+            M3_LOGIN) allow="rag_engine/contrib/" ;;
+            M4_LOGIN) allow="database/charts/" ;;
+            M5_LOGIN) allow="atlas_kv/contrib/" ;;
+            M6_LOGIN) allow="frontend/" ;;
+            M7_LOGIN) allow="evaluation/safety/" ;;
+            M8_LOGIN) allow="evaluation/benchmark/ docs/presentation/" ;;
+            *) echo "::error::No allowlist entry for this PR author; ask the lead."; exit 1 ;;
+          esac
+          if [ "${CHANGED:-0}" -ge 3000 ]; then    # files API returns at most 3000 files
+            echo "::error::PR touches 3000+ files; split it."; exit 1
+          fi
+          files=$(gh api --paginate "repos/$REPO/pulls/$PR/files" \
+                    --jq '.[] | .filename, (.previous_filename // empty)')
+          bad=0
+          while IFS= read -r f; do
+            [ -n "$f" ] || continue
+            case "$f" in
+              .github/*|.claude/*|.cursor/*|.gemini/*) reason=protected ;;
+              *) case "${f##*/}" in
+                   CODEOWNERS|AGENTS.md|AGENTS.override.md|CLAUDE.md|CLAUDE.local.md|GEMINI.md|.cursorrules) reason=protected ;;
+                   *) reason=outside ;;
+                 esac ;;
+            esac
+            if [ "$reason" = outside ]; then
+              for p in $allow; do
+                case "$f" in "$p"*) reason=ok ;; esac
+              done
+            fi
+            if [ "$reason" != ok ]; then
+              printf 'BLOCKED (%s): %q\n' "$reason" "$f"   # %q + prefix: no workflow-command injection
+              bad=1
+            fi
+          done <<< "$files"
+          [ "$bad" = 0 ] || echo "::error::PR changes files outside the author's allowlist (see BLOCKED lines)."
+          exit "$bad"
+          # --- guard end
