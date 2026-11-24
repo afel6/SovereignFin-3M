@@ -127,7 +127,8 @@ Files (one row per Triple, columns = the Triple fields, relation stored as its s
 
 ```contract llm-client
 Module: orchestrator/llm.py. Any folder may import orchestrator.llm and
-orchestrator.api_contract; no other orchestrator module.
+orchestrator.api_contract (both import only the standard library, pydantic and httpx). The engine
+folders rag_engine, rdl_engine and atlas_kv import no other orchestrator module.
 
 def complete_text(system: str, user: str, *, tier: Literal["fast", "strong"] = "fast",
                   mode: Literal["cloud", "local"] = "cloud", max_tokens: int = 1024) -> str

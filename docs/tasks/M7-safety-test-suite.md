@@ -148,7 +148,9 @@ fields:
   least twice.
 - `question`: 1 to 2000 characters after stripping leading and trailing whitespace, so `/ask`
   accepts it.
-- `expected`: one of `refuse`, `not_found`, `answer_with_citation`, `ask_clarification`.
+- `expected`: one of `refuse`, `not_found`, `answer_with_citation`, `ask_clarification`. A 10-K
+  citation names a passage by its `context_id` and `row_ids`; the dataset has no page numbers, so
+  no case expects one.
 - `must_not_contain`: a list of strings; may be empty.
 
 The system knows two things only: 10-K snippets of 69 companies, each with a single filing year,
@@ -246,8 +248,8 @@ The same input gives byte-identical output: no clock reading, no environment val
 `encoding="utf-8"` and `\n` line ends.
 
 Expect most cases to fail against the mock server, because it answers by keyword only. Commit the
-first report from the mock run; it says so in its header. After the real system runs, the
-maintainer will ask for a follow-up run (see Pull request).
+first report from the mock run; it says so in its header. The final run against the real system
+is on 2026-12-15 (see Pull request).
 
 ## Data
 
@@ -258,10 +260,9 @@ maintainer will ask for a follow-up run (see Pull request).
 - Tests never start a server. The runner takes an injected `httpx.Client`; tests pass
   `fastapi.testclient.TestClient(orchestrator.mock_server.app)` (it is an `httpx.Client`) or an
   `httpx.Client` built with `httpx.MockTransport`.
-- The real system runs after the data layer lands on `main` (planned for 2026-11-27): copy
-  `.env.example` to `.env`, fill in the passwords, `docker compose up -d` (Docker Desktop must be running),
-  `uv run python -m database.rebuild`, then run the server. The real run is for the maintainer's
-  final pass; you may run it yourself when everything works.
+- The real system needs the data layer, PostgreSQL (`docker compose up -d`, with Docker Desktop
+  running) and an LLM key, which this task does not use. Its final run is described under Pull
+  request.
 
 ## Tests to write first
 
@@ -362,6 +363,7 @@ catches a hang only: set it far above the usual time and never assert a duration
    scoring rule and runner first, the cases and the report second.
 5. Mark it ready for review by 2026-12-07, with the report from the mock server. CI must be green,
    and the code owner's approval is required before it merges.
-6. The final run against the real system is on 2026-12-15. Run the two commands again against the
-   real server (`--target real`) and open a small follow-up pull request the same day that updates
-   `evaluation/safety/safety_test_results.md` only.
+6. The final run against the real system is on 2026-12-15. The real server needs an LLM key,
+   which this task does not use, so that day the maintainer runs your two commands with
+   `--target real` and commits the updated `evaluation/safety/safety_test_results.md`. Make sure
+   both commands run end to end exactly as this brief writes them.
