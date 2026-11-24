@@ -28,21 +28,25 @@ jobs:
       - name: Secret scan (fails on committed key patterns; prints file names only)
         run: |
           set -u
-          b='(^|[^A-Za-z0-9_-])'
-          if git grep -lIE \
-              -e "${b}nvapi-[A-Za-z0-9_-]{20,}" \
-              -e "${b}sk-[A-Za-z0-9_-]{20,}" \
-              -e "${b}gh[pousr]_[A-Za-z0-9]{20,}" \
-              -e "${b}github_pat_[A-Za-z0-9_]{20,}" \
-              -e "${b}(AKIA|ASIA)[0-9A-Z]{16}" \
-              -e "${b}hf_[A-Za-z0-9]{20,}" \
+          boundary='(^|[^A-Za-z0-9_-])'
+          rc=0
+          git grep -lIE \
+              -e "${boundary}nvapi-[A-Za-z0-9_-]{20,}" \
+              -e "${boundary}sk-[A-Za-z0-9_-]{20,}" \
+              -e "${boundary}gh[pousr]_[A-Za-z0-9]{20,}" \
+              -e "${boundary}github_pat_[A-Za-z0-9_]{20,}" \
+              -e "${boundary}(AKIA|ASIA)[0-9A-Z]{16}" \
+              -e "${boundary}hf_[A-Za-z0-9]{20,}" \
               -e "-----BEGIN [A-Z ]*PRIVATE KEY-----" \
-              > "$RUNNER_TEMP/secret-files.txt"; then
-            sed 's/^/KEY PATTERN IN: /' "$RUNNER_TEMP/secret-files.txt"
-            echo "::error::Committed key pattern found. Remove it and rotate the key."
-            exit 1
-          fi
-          echo "No key patterns found."
+              > "$RUNNER_TEMP/secret-files.txt" || rc=$?
+          case "$rc" in
+            0) sed 's/^/KEY PATTERN IN: /' "$RUNNER_TEMP/secret-files.txt"
+               echo "::error::Committed key pattern found. Remove it and rotate the key."
+               exit 1 ;;
+            1) echo "No key patterns found." ;;
+            *) echo "::error::Secret scan could not run (git grep exit $rc)."
+               exit 1 ;;
+          esac
       - name: Path-guard self-test
         run: bash .github/tests/test_path_guard.sh
       - name: Gate (uv sync --locked --all-groups, ruff check, ruff format --check, pytest --cov)
