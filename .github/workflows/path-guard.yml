@@ -28,18 +28,18 @@ jobs:
           set -euo pipefail
           set -f                                   # no globbing of allowlist words
           LEAD="afel6"
-          # One line per contributor: replace each MN_LOGIN with that member's GitHub login.
-          # Placeholders contain "_", which GitHub logins cannot, so they never match.
-          # Prefixes MUST end with "/".
-          case "$AUTHOR" in
-            "$LEAD")  exit 0 ;;
-            M2_LOGIN) allow="data_pipeline/clean/ database/tenk/" ;;
-            M3_LOGIN) allow="rag_engine/contrib/" ;;
-            M4_LOGIN) allow="database/charts/" ;;
-            M5_LOGIN) allow="atlas_kv/contrib/" ;;
-            M6_LOGIN) allow="frontend/" ;;
-            M7_LOGIN) allow="evaluation/safety/" ;;
-            M8_LOGIN) allow="evaluation/benchmark/ docs/presentation/" ;;
+          # GitHub logins are case-insensitive: keys below are lowercase and so is the author.
+          # One line per contributor. Prefixes MUST end with "/".
+          author="${AUTHOR,,}"
+          case "$author" in
+            "$LEAD")              exit 0 ;;
+            tsaeedsaifullah-blip) allow="data_pipeline/clean/ database/tenk/" ;;
+            moathkhaled2k5)       allow="rag_engine/contrib/" ;;
+            9yavi)                allow="database/charts/" ;;
+            mohammeddf503-beep)   allow="atlas_kv/contrib/" ;;
+            tahaelsanfaz)         allow="frontend/" ;;
+            ahmedkarrar742-afk)   allow="evaluation/safety/" ;;
+            mdxflame23)           allow="evaluation/benchmark/ docs/presentation/" ;;
             *) echo "::error::No allowlist entry for this PR author; ask the lead."; exit 1 ;;
           esac
           if [ "${CHANGED:-0}" -ge 3000 ]; then    # files API returns at most 3000 files
