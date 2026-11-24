@@ -127,7 +127,7 @@ A raw row is dropped by the first rule that matches, checked in this order:
 3. exact_duplicate   same ticker, filing, question, answer and context (after N) as a kept row
                      with a lower raw_index
 Every other row is kept: paraphrase duplicates, repeated contexts, the second JNJ batch, tables
-and long contexts. About 6988 rows are kept.
+and long contexts. 6987 rows are kept (the validator accepts 6975–6995).
 
 Drop log: data/processed/drop_log.csv with the columns raw_index, row_id, reason, duplicate_of
 (duplicate_of = the row_id of the kept row that an exact_duplicate row repeats).
@@ -207,7 +207,7 @@ These define the part of the task that the contract leaves to you.
   EXCLUDED.<column>`, with values passed as parameters (psycopg `executemany`, or `COPY` into a
   temporary table followed by one `INSERT ... SELECT ... ON CONFLICT`). Loading the same file twice
   leaves the table unchanged.
-- CLI: `uv run python -m data_pipeline.clean.load_data --parquet PATH`. It reads the URL from
+- CLI: `uv run --env-file .env python -m data_pipeline.clean.load_data --parquet PATH`. It reads the URL from
   `DATABASE_URL_OWNER` (the read-only `DATABASE_URL` cannot write). When the variable is missing it
   prints `DATABASE_URL_OWNER is not set.` and exits with code 1. A connection or SQL error prints
   one friendly line without the URL or password and exits with code 1.
@@ -226,7 +226,7 @@ These define the part of the task that the contract leaves to you.
   example `load_tickers()`); unit tests replace it with `monkeypatch` and a two-row DataFrame, so
   they run before that file lands.
 - PostgreSQL: copy `.env.example` to `.env`, fill in the passwords, then `docker compose up -d` (Docker Desktop must be running)
-  (PostgreSQL on 127.0.0.1:5432) and `uv run python -m database.rebuild` (creates the roles and
+  (PostgreSQL on 127.0.0.1:5432) and `uv run --env-file .env python -m database.rebuild` (creates the roles and
   tables; lands with the data layer).
 
 ## Tests to write first

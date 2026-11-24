@@ -58,6 +58,9 @@ run_case pyproject-edit         1 "$m4" 1 pyproject.toml
 run_case engine-api-edit        1 "$m3" 1 rag_engine/api.py
 run_case nested-agents-md       1 "$m6" 1 frontend/AGENTS.md
 run_case nested-claude-local    1 "$m6" 1 frontend/CLAUDE.local.md
+run_case nested-claude-dir      1 "$m6" 1 frontend/.claude/settings.json
+run_case nested-cursor-rules    1 "$m6" 1 frontend/.cursor/rules/x.mdc
+run_case nested-gemini-dir      1 "$m2" 1 data_pipeline/clean/.gemini/settings.json
 run_case codeowners-root        1 "$m6" 1 CODEOWNERS
 run_case workflow-edit          1 "$m6" 1 .github/workflows/path-guard.yml
 run_case rename-out-of-core     1 "$m6" 1 frontend/gnn.py rdl_engine/gnn.py
