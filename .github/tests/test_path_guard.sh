@@ -55,6 +55,7 @@ run_case docs-outside-slides    1 "$m8" 1 docs/contracts.md
 run_case pyproject-edit         1 "$m4" 1 pyproject.toml
 run_case engine-api-edit        1 "$m3" 1 rag_engine/api.py
 run_case nested-agents-md       1 "$m6" 1 frontend/AGENTS.md
+run_case nested-claude-local     1 "$m6" 1 frontend/CLAUDE.local.md
 run_case codeowners-root        1 "$m6" 1 CODEOWNERS
 run_case workflow-edit          1 "$m6" 1 .github/workflows/path-guard.yml
 run_case rename-out-of-core     1 "$m6" 1 frontend/gnn.py rdl_engine/gnn.py
