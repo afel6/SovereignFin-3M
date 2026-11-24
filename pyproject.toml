@@ -1,0 +1,110 @@
+[project]
+name = "sovereignfin"
+version = "0.1.0"
+description = "Local-first financial intelligence engine: hybrid RAG, read-only SQL, anomaly scores and KG retrieval behind one /ask API."
+readme = "README.md"
+requires-python = "==3.13.*"
+dependencies = [
+    "pydantic>=2.14.4",
+    "httpx>=0.28.1",
+]
+
+# Install only what a task needs: `uv sync --group <name>` (dev is a default group).
+# `uv sync --locked --all-groups` installs everything; the gate script and CI use it.
+[dependency-groups]
+data = [
+    "pandas>=3.1.1",
+    "pyarrow>=26.0.1",
+    "psycopg[binary]>=3.3.9",
+    "faker==40.63.0",
+    "numpy==2.5.5",
+    "huggingface_hub>=1.33.0",
+]
+rag = [
+    "qdrant-client>=1.20.0",
+    "fastembed>=0.9.1",
+    "pandas>=3.1.1",
+    "pyarrow>=26.0.1",
+]
+charts = [
+    "sqlglot>=30.34.0",
+    "pandas>=3.1.1",
+]
+kg = [
+    "pandas>=3.1.1",
+    "pyarrow>=26.0.1",
+]
+api = [
+    "fastapi>=0.165.0",
+    "uvicorn>=0.54.0",
+]
+ui = [
+    "streamlit>=1.67.0",
+    { include-group = "api" },
+]
+eval = [
+    "pandas>=3.1.1",
+    "matplotlib>=3.11.2",
+    "python-pptx>=1.0.2",
+    { include-group = "rag" },
+]
+dev = [
+    "pytest>=9.2.0",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.17.6",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+target-version = "py313"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B", "UP"]
+
+[tool.pytest.ini_options]
+# Tests live in tests/ and in a tests/ folder inside each package or contributor prefix
+# (for example orchestrator/tests/, data_pipeline/clean/tests/, docs/tests/).
+testpaths = ["tests", "*/tests", "*/*/tests"]
+pythonpath = ["."]
+addopts = [
+    "--import-mode=importlib",
+    "--strict-markers",
+    "-m",
+    "not integration and not needs_data",
+]
+markers = [
+    "integration: needs the PostgreSQL or Qdrant service; run with `pytest -m integration`",
+    "needs_data: needs downloaded data or models; run with `pytest -m needs_data`",
+]
+
+# Coverage counts core packages only. The gate script runs `pytest --cov`, which applies
+# fail_under; a plain `pytest` run (for example on one contributor folder) measures nothing.
+[tool.coverage.run]
+source = [
+    "data_pipeline",
+    "database",
+    "rag_engine",
+    "rdl_engine",
+    "atlas_kv",
+    "orchestrator",
+    "evaluation",
+]
+omit = [
+    "*/tests/*",
+    "data_pipeline/clean/*",
+    "database/tenk/*",
+    "database/charts/*",
+    "rag_engine/contrib/*",
+    "atlas_kv/contrib/*",
+    "evaluation/safety/*",
+    "evaluation/benchmark/*",
+]
+
+[tool.coverage.report]
+fail_under = 80
+skip_empty = true
+show_missing = true
+skip_covered = true
