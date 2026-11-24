@@ -1,0 +1,30 @@
+# Normalize text files to LF in the repository and in working trees on every OS.
+* text=auto eol=lf
+
+# Binary files: never convert or diff as text.
+*.parquet binary
+*.npy binary
+*.npz binary
+*.pkl binary
+*.pt binary
+*.pth binary
+*.safetensors binary
+*.gguf binary
+*.onnx binary
+*.sqlite binary
+*.db binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.webp binary
+*.pdf binary
+*.pptx binary
+*.docx binary
+*.xlsx binary
+*.zip binary
+*.gz binary
+*.ttf binary
+*.woff binary
+*.woff2 binary

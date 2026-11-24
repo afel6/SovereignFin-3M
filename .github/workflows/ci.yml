@@ -1,0 +1,87 @@
+name: ci
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+env:
+  UV_VERSION: "0.11.21"
+
+jobs:
+  lint-unit:
+    name: lint-unit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version-file: .python-version
+      - name: Install uv
+        run: python -m pip install "uv==${UV_VERSION}"
+      - name: Secret scan (fails on committed key patterns; prints file names only)
+        run: |
+          set -u
+          boundary='(^|[^A-Za-z0-9_-])'
+          rc=0
+          git grep -lIE \
+              -e "${boundary}nvapi-[A-Za-z0-9_-]{20,}" \
+              -e "${boundary}sk-[A-Za-z0-9_-]{20,}" \
+              -e "${boundary}gh[pousr]_[A-Za-z0-9]{20,}" \
+              -e "${boundary}github_pat_[A-Za-z0-9_]{20,}" \
+              -e "${boundary}(AKIA|ASIA)[0-9A-Z]{16}" \
+              -e "${boundary}hf_[A-Za-z0-9]{20,}" \
+              -e "-----BEGIN [A-Z ]*PRIVATE KEY-----" \
+              > "$RUNNER_TEMP/secret-files.txt" || rc=$?
+          case "$rc" in
+            0) sed 's/^/KEY PATTERN IN: /' "$RUNNER_TEMP/secret-files.txt"
+               echo "::error::Committed key pattern found. Remove it and rotate the key."
+               exit 1 ;;
+            1) echo "No key patterns found." ;;
+            *) echo "::error::Secret scan could not run (git grep exit $rc)."
+               exit 1 ;;
+          esac
+      - name: Path-guard self-test
+        run: bash .github/tests/test_path_guard.sh
+      - name: Gate (uv sync --locked --all-groups, ruff check, ruff format --check, pytest --cov)
+        run: python scripts/gate.py
+
+  integration:
+    name: integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16.16
+        env:
+          POSTGRES_PASSWORD: ci-throwaway   # disposable service container, not a secret
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL_ADMIN: postgresql://postgres:ci-throwaway@127.0.0.1:5432/postgres
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version-file: .python-version
+      - name: Install uv
+        run: python -m pip install "uv==${UV_VERSION}"
+      - name: Install dependencies
+        run: uv sync --locked --all-groups
+      # >>> Database rebuild and dataset validator commands go here (rebuild from init.sql,
+      # >>> load the synthetic CSVs, run the validator). Leave this marker in place.
+      - name: Integration tests
+        run: uv run --no-sync pytest -m integration
