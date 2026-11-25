@@ -52,6 +52,7 @@ jobs:
             [ -n "$f" ] || continue
             case "$f" in
               .github/*|.claude/*|.cursor/*|.gemini/*) reason=protected ;;
+              */.claude/*|*/.cursor/*|*/.gemini/*) reason=protected ;;   # nested agent config
               *) case "${f##*/}" in
                    CODEOWNERS|AGENTS.md|AGENTS.override.md|CLAUDE.md|CLAUDE.local.md|GEMINI.md|.cursorrules) reason=protected ;;
                    *) reason=outside ;;

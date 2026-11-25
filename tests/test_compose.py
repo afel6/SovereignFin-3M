@@ -200,6 +200,12 @@ def test_qdrant_telemetry_disabled(services):
     assert env["QDRANT__TELEMETRY_DISABLED"] == "true"
 
 
+def test_qdrant_cors_disabled(services):
+    """Qdrant's default CORS lets any web page in the user's browser read or delete the index."""
+    env = map_items(services["qdrant"], "environment")
+    assert env["QDRANT__SERVICE__ENABLE_CORS"] == "false"
+
+
 def test_postgres_password_comes_from_env_file(services):
     """A literal password in the file would be committed with it."""
     env = map_items(services["postgres"], "environment")

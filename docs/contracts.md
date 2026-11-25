@@ -82,7 +82,7 @@ A raw row is dropped by the first rule that matches, checked in this order:
 3. exact_duplicate   same ticker, filing, question, answer and context (after N) as a kept row
                      with a lower raw_index
 Every other row is kept: paraphrase duplicates, repeated contexts, the second JNJ batch, tables
-and long contexts. About 6988 rows are kept.
+and long contexts. 6987 rows are kept (the validator accepts 6975–6995).
 
 Drop log: data/processed/drop_log.csv with the columns raw_index, row_id, reason, duplicate_of
 (duplicate_of = the row_id of the kept row that an exact_duplicate row repeats).

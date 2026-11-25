@@ -1,0 +1,70 @@
+ticker,company_name,sector,aliases
+AAPL,Apple Inc.,Information Technology,Apple
+ABBV,AbbVie Inc.,Health Care,AbbVie
+ABNB,"Airbnb, Inc.",Consumer Discretionary,Airbnb
+AMC,"AMC Entertainment Holdings, Inc.",Communication Services,AMC Entertainment|AMC
+AMD,"Advanced Micro Devices, Inc.",Information Technology,Advanced Micro Devices|AMD
+AMZN,"Amazon.com, Inc.",Consumer Discretionary,Amazon
+AVGO,Broadcom Inc.,Information Technology,Broadcom
+AXP,American Express Company,Financials,American Express|Amex
+AZO,"AutoZone, Inc.",Consumer Discretionary,AutoZone
+BAC,Bank of America Corporation,Financials,Bank of America
+BRK-A,Berkshire Hathaway Inc.,Financials,Berkshire Hathaway|Berkshire
+CAT,Caterpillar Inc.,Industrials,Caterpillar
+CB,Chubb Limited,Financials,Chubb
+CMCSA,Comcast Corporation,Communication Services,Comcast
+CMG,"Chipotle Mexican Grill, Inc.",Consumer Discretionary,Chipotle Mexican Grill|Chipotle
+COST,Costco Wholesale Corporation,Consumer Staples,Costco
+CRM,"Salesforce, Inc.",Information Technology,Salesforce
+CVS,CVS Health Corporation,Health Care,CVS Health|CVS
+CVX,Chevron Corporation,Energy,Chevron
+DAL,"Delta Air Lines, Inc.",Industrials,Delta Air Lines|Delta
+DLTR,"Dollar Tree, Inc.",Consumer Staples,Dollar Tree
+DVA,DaVita Inc.,Health Care,DaVita
+EA,Electronic Arts Inc.,Communication Services,Electronic Arts
+EBAY,eBay Inc.,Consumer Discretionary,eBay
+EFX,Equifax Inc.,Industrials,Equifax
+ENPH,"Enphase Energy, Inc.",Information Technology,Enphase Energy|Enphase
+ETSY,"Etsy, Inc.",Consumer Discretionary,Etsy
+F,Ford Motor Company,Consumer Discretionary,Ford Motor|Ford
+FDX,FedEx Corporation,Industrials,FedEx
+GILD,"Gilead Sciences, Inc.",Health Care,Gilead Sciences|Gilead
+GIS,"General Mills, Inc.",Consumer Staples,General Mills
+GM,General Motors Company,Consumer Discretionary,General Motors
+GME,GameStop Corp.,Consumer Discretionary,GameStop
+GOOGL,Alphabet Inc.,Communication Services,Alphabet|Google
+GRMN,Garmin Ltd.,Consumer Discretionary,Garmin
+GS,"The Goldman Sachs Group, Inc.",Financials,Goldman Sachs
+HAS,"Hasbro, Inc.",Consumer Discretionary,Hasbro
+HD,"The Home Depot, Inc.",Consumer Discretionary,Home Depot
+HLT,Hilton Worldwide Holdings Inc.,Consumer Discretionary,Hilton Worldwide|Hilton
+HPE,Hewlett Packard Enterprise Company,Information Technology,Hewlett Packard Enterprise|HPE
+HPQ,HP Inc.,Information Technology,HP Inc.|HP
+HSY,The Hershey Company,Consumer Staples,Hershey
+HUM,Humana Inc.,Health Care,Humana
+IBM,International Business Machines Corporation,Information Technology,International Business Machines|IBM
+ICE,"Intercontinental Exchange, Inc.",Financials,Intercontinental Exchange|ICE
+INTU,Intuit Inc.,Information Technology,Intuit
+IRM,Iron Mountain Incorporated,Real Estate,Iron Mountain
+JNJ,Johnson & Johnson,Health Care,Johnson & Johnson|J&J
+JPM,JPMorgan Chase & Co.,Financials,JPMorgan Chase|JPMorgan|JP Morgan
+KO,The Coca-Cola Company,Consumer Staples,Coca-Cola
+KR,The Kroger Co.,Consumer Staples,Kroger
+LLY,Eli Lilly and Company,Health Care,Eli Lilly|Lilly
+LULU,lululemon athletica inc.,Consumer Discretionary,lululemon
+LVS,Las Vegas Sands Corp.,Consumer Discretionary,Las Vegas Sands|Sands
+META,"Meta Platforms, Inc.",Communication Services,Meta Platforms|Meta|Facebook
+MSFT,Microsoft Corporation,Information Technology,Microsoft
+NFLX,"Netflix, Inc.",Communication Services,Netflix
+NKE,"NIKE, Inc.",Consumer Discretionary,Nike
+NVDA,NVIDIA Corporation,Information Technology,NVIDIA
+PG,The Procter & Gamble Company,Consumer Staples,Procter & Gamble|P&G
+PLTR,Palantir Technologies Inc.,Information Technology,Palantir
+PTON,"Peloton Interactive, Inc.",Consumer Discretionary,Peloton
+SBUX,Starbucks Corporation,Consumer Discretionary,Starbucks
+SCHW,The Charles Schwab Corporation,Financials,Charles Schwab|Schwab
+T,AT&T Inc.,Communication Services,AT&T
+TSLA,"Tesla, Inc.",Consumer Discretionary,Tesla
+UNH,UnitedHealth Group Incorporated,Health Care,UnitedHealth Group|UnitedHealth|UnitedHealthcare
+V,Visa Inc.,Financials,Visa
+WMT,Walmart Inc.,Consumer Staples,Walmart

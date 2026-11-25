@@ -327,7 +327,7 @@ come from the mock server.
   `uv run python -m data_pipeline.contract.build_reference --out-dir data/processed` writes
   `data/processed/cleaned_10k_reports.parquet`, the source of the 10-K gold answers.
 - Synthetic database: copy `.env.example` to `.env`, fill in the passwords, `docker compose up -d` (Docker Desktop must be running),
-  then `uv run python -m database.rebuild` (planned for 2026-11-27). Use it for a read-only query
+  then `uv run --env-file .env python -m database.rebuild` (planned for 2026-11-27). Use it for a read-only query
   to check the `sql` and `anomaly` facts.
 - Mock server: `uv run uvicorn orchestrator.mock_server:app --port 8000`, on `main` with
   `orchestrator/api_contract.py` and `orchestrator/llm.py` (planned for 2026-11-25). It answers

@@ -1,0 +1,113 @@
+{
+  "revenue": {
+    "answer": "Sample answer: ACME reports that revenue grew year over year, driven mainly by subscription sales. The figures in this mock response are illustrative only.",
+    "outcome": "answered",
+    "citations": [
+      {
+        "id": "a1b2c3d4e5f60718",
+        "source": "rag",
+        "ticker": "ACME",
+        "text": "Sample passage: Total revenue increased compared with the prior fiscal year, primarily due to growth in subscription offerings."
+      },
+      {
+        "id": "0f9e8d7c6b5a4938",
+        "source": "rag",
+        "ticker": "ACME",
+        "text": "Sample passage: Revenue is recognized when control of the promised services transfers to the customer."
+      }
+    ],
+    "chart": null,
+    "route": ["rag"],
+    "latency_ms": 0,
+    "mode": "cloud",
+    "warnings": []
+  },
+  "late": {
+    "answer": "Sample answer: three vendors have late payments in the sample data, led by Vendor Alpha with 42 days late.",
+    "outcome": "answered",
+    "citations": [
+      {
+        "id": "late_payments",
+        "source": "sql",
+        "ticker": "ACME",
+        "text": "Sample query result: days late by vendor from the late_payments query."
+      }
+    ],
+    "chart": {
+      "chart_type": "bar",
+      "title": "Days late by vendor",
+      "x_field": "vendor_name",
+      "y_fields": ["days_late"],
+      "data": [
+        {"vendor_name": "Vendor Alpha", "days_late": 42},
+        {"vendor_name": "Vendor Beta", "days_late": 27},
+        {"vendor_name": "Vendor Gamma", "days_late": 15}
+      ]
+    },
+    "route": ["sql"],
+    "latency_ms": 0,
+    "mode": "cloud",
+    "warnings": []
+  },
+  "anomal": {
+    "answer": "Sample answer: the three highest anomaly scores in the sample data are listed in the table.",
+    "outcome": "answered",
+    "citations": [
+      {
+        "id": "TXN-000123",
+        "source": "anomaly",
+        "ticker": "ACME",
+        "text": "Sample transaction with a high anomaly score and an unusual amount."
+      },
+      {
+        "id": "TXN-000456",
+        "source": "anomaly",
+        "ticker": "ACME",
+        "text": "Sample transaction with a duplicate-like pattern."
+      }
+    ],
+    "chart": {
+      "chart_type": "table",
+      "title": "Top anomalies",
+      "x_field": null,
+      "y_fields": ["score"],
+      "data": [
+        {
+          "transaction_id": "TXN-000123",
+          "vendor_name": "Vendor Alpha",
+          "amount": 98250.5,
+          "score": 0.97,
+          "reasons": "unusual amount"
+        },
+        {
+          "transaction_id": "TXN-000456",
+          "vendor_name": "Vendor Beta",
+          "amount": 12400.0,
+          "score": 0.91,
+          "reasons": "duplicate-like pattern"
+        },
+        {
+          "transaction_id": "TXN-000789",
+          "vendor_name": "Vendor Gamma",
+          "amount": 530.75,
+          "score": 0.86,
+          "reasons": "rare vendor"
+        }
+      ]
+    },
+    "route": ["anomaly"],
+    "latency_ms": 0,
+    "mode": "cloud",
+    "warnings": ["Scores are sample values from the mock server."]
+  },
+  "no_match": {
+    "answer": "No canned answer matches this question. Try a question about revenue, late payments or anomalies.",
+    "outcome": "not_found",
+    "citations": [],
+    "chart": null,
+    "route": [],
+    "latency_ms": 0,
+    "mode": "cloud",
+    "warnings": []
+  }
+}
