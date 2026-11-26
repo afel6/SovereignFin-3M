@@ -22,10 +22,11 @@ def _request[Response: BaseModel](
     method: str,
     path: str,
     model: type[Response],
-    **kwargs,
+    *,
+    json_body: dict[str, str | None] | None = None,
 ) -> Response | ApiError:
     try:
-        response = client.request(method, path, **kwargs)
+        response = client.request(method, path, json=json_body)
     except httpx.TimeoutException:
         return ApiError("The API request timed out.", transport_error=True)
     except (httpx.RequestError, httpx.InvalidURL):
@@ -36,9 +37,10 @@ def _request[Response: BaseModel](
         return ApiError("The API rejected the request.", status)
     if status == 503:
         try:
-            return ApiError(ErrorDetail.model_validate_json(response.content).detail, status)
+            detail = ErrorDetail.model_validate_json(response.content).detail
         except ValidationError:
-            return ApiError("The API is unavailable.", status)
+            detail = ""
+        return ApiError(detail if detail.strip() else "The API is unavailable.", status)
     if status != 200:
         return ApiError("The API returned an unexpected HTTP response.", status)
     try:
@@ -56,7 +58,7 @@ def ask(
         if any(item["loc"] == ("question",) for item in error.errors()):
             return ApiError(INVALID_QUESTION)
         return ApiError("The question settings are invalid.")
-    return _request(client, "POST", "/ask", AskResponse, json=request.model_dump(mode="json"))
+    return _request(client, "POST", "/ask", AskResponse, json_body=request.model_dump(mode="json"))
 
 
 def health(client: httpx.Client) -> HealthResponse | ApiError:

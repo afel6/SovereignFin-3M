@@ -14,16 +14,23 @@ class ApiConfigurationError(ValueError):
 
 
 def create_client(*, transport: httpx.BaseTransport | None = None) -> httpx.Client:
+    base = os.getenv("SF_API_BASE") or DEFAULT_API_BASE
     try:
-        url = httpx.URL(os.getenv("SF_API_BASE", DEFAULT_API_BASE))
+        url = httpx.URL(base)
     except httpx.InvalidURL:
         raise ApiConfigurationError from None
     if (
         url.scheme not in {"http", "https"}
         or not url.host
         or url.userinfo
-        or url.query
-        or url.fragment
+        or "?" in base
+        or "#" in base
     ):
         raise ApiConfigurationError
-    return httpx.Client(base_url=url, timeout=TIMEOUT_SECONDS, transport=transport, trust_env=False)
+    return httpx.Client(
+        base_url=url,
+        timeout=TIMEOUT_SECONDS,
+        transport=transport,
+        trust_env=False,
+        follow_redirects=False,
+    )
