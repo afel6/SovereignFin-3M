@@ -8,7 +8,7 @@ from numbers import Integral, Real
 import pandas as pd
 from pandas.api.types import is_datetime64_any_dtype, is_numeric_dtype
 
-from orchestrator.api_contract import ChartSpec
+from orchestrator.api_contract import MAX_CHART_ROWS, ChartSpec
 
 
 def _value(value):
@@ -31,6 +31,8 @@ def dataframe_to_chart(
     y: list[str] | None = None,
     title: str = "",
 ) -> ChartSpec:
+    if not df.columns.is_unique:
+        raise ValueError("Duplicate column names are not supported")
     if chart_type is not None and chart_type not in {"bar", "line", "pie", "table"}:
         raise ValueError("Unknown chart type")
     if x is not None and x not in df.columns:
@@ -70,7 +72,7 @@ def dataframe_to_chart(
     chosen_x = x if x is not None else (None if chart_type == "table" else candidate)
     data = [
         {column: _value(value) for column, value in row.items()}
-        for row in df.head(500).to_dict(orient="records")
+        for row in df.head(MAX_CHART_ROWS).to_dict(orient="records")
     ]
     return ChartSpec(
         chart_type=chart_type, title=title, x_field=chosen_x, y_fields=chosen_y, data=data

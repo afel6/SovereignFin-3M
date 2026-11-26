@@ -30,11 +30,15 @@ def test_chart_inference():
     chart = dataframe_to_chart(pd.DataFrame({"a": [1], "b": [2]}))
     assert (chart.chart_type, chart.x_field, chart.y_fields) == ("table", None, ["a", "b"])
     assert dataframe_to_chart(frame[["day"]]).chart_type == "table"
-    assert dataframe_to_chart(bar, chart_type="table").chart_type == "table"
+    table = dataframe_to_chart(bar, chart_type="table")
+    assert table.chart_type == "table" and table.x_field is None
+    two_text = pd.DataFrame({"a": ["x"], "b": ["y"], "n": [1]})
+    assert dataframe_to_chart(two_text, chart_type="bar").x_field == "a"
     assert dataframe_to_chart(bar, chart_type="pie", y=["total"]).y_fields == ["total"]
     assert dataframe_to_chart(bar[["vendor", "total"]], chart_type="pie").chart_type == "pie"
     for kwargs in (
         {"chart_type": "pie"},
+        {"chart_type": "pie", "y": []},
         {"chart_type": "scatter"},
         {"x": "nope"},
         {"y": ["nope"]},
@@ -77,6 +81,12 @@ def test_line_requires_numeric_selected_y():
 def test_unknown_values_are_stringified():
     frame = pd.DataFrame({"value": [np.array([1, 2])]})
     assert dataframe_to_chart(frame).data[0]["value"] == "[1 2]"
+
+
+def test_duplicate_columns_are_rejected():
+    frame = pd.DataFrame([[1, 2]], columns=["value", "value"])
+    with pytest.raises(ValueError, match="Duplicate column names"):
+        dataframe_to_chart(frame)
 
 
 def test_nonfinite_values_are_json_safe():

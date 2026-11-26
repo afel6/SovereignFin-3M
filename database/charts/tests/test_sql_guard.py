@@ -47,6 +47,16 @@ from database.charts import UnsafeSQLError, ensure_read_only
         "SELECT * FROM other.vendors",
         "SELECT * FROM vendors FOR UPDATE",
         "SELECT * FROM vendors FOR SHARE",
+        "SELECT pg_\u017fleep(10)",
+        "SELECT \u017fet_config('x', 'y', false)",
+        "SELECT current_sett\u0131ng('x')",
+        "SELECT dbl\u0131nk_exec('x', 'y')",
+        "SELECT pg_read_\ufb01le('x')",
+        "WITH x AS (DELETE FROM vendors RETURNING id) SELECT 1",
+        "WITH t AS (SELECT * FROM secrets) SELECT * FROM t",
+        "SELECT * FROM vendors JOIN secrets ON true",
+        "SELECT 'abc",
+        "SELECT 1 /* unterminated",
         "",
         "   ",
         "SELEC * FROM vendors",
@@ -57,6 +67,8 @@ def test_rejects_attacks(sql, allowed):
     with pytest.raises(UnsafeSQLError) as error:
         ensure_read_only(sql, allowed)
     assert isinstance(error.value.reason, str) and error.value.reason
+    assert "\n" not in error.value.reason and "Traceback" not in error.value.reason
+    assert not sql.strip() or sql not in error.value.reason
 
 
 @pytest.mark.parametrize(
@@ -68,8 +80,6 @@ def test_rejects_attacks(sql, allowed):
         ("SELECT * FROM vendors LIMIT 101", 100),
         ("SELECT * FROM vendors LIMIT ALL", 100),
         ("SELECT * FROM vendors LIMIT 1 + 1", 100),
-        ("SELECT id FROM vendors UNION SELECT id FROM payments", 100),
-        ("SELECT id FROM vendors UNION SELECT id FROM payments LIMIT 10", 10),
         ("WITH t AS (SELECT * FROM vendors) SELECT * FROM t", 100),
         ("SELECT v.id FROM vendors v JOIN payments p ON p.vendor_id = v.id", 100),
         ("SELECT * FROM public.vendors", 100),
@@ -77,15 +87,44 @@ def test_rejects_attacks(sql, allowed):
     ],
 )
 def test_valid_queries(sql, limit, allowed):
-    tree = sqlglot.parse_one(ensure_read_only(sql, allowed, 100), read="postgres")
+    out = ensure_read_only(sql, allowed, 100)
+    assert ensure_read_only(out, allowed, 100) == out
+    tree = sqlglot.parse_one(out, read="postgres")
     assert int(tree.args["limit"].expression.this) == limit
-    if isinstance(tree, exp.Union):
-        assert not tree.this.args.get("limit") and not tree.expression.args.get("limit")
+
+
+@pytest.mark.parametrize(
+    ("sql", "limit"),
+    [
+        ("SELECT id FROM vendors UNION SELECT id FROM payments", 100),
+        ("SELECT id FROM vendors UNION SELECT id FROM payments LIMIT 10", 10),
+    ],
+)
+def test_union_limit_is_on_the_root(sql, limit, allowed):
+    out = ensure_read_only(sql, allowed, 100)
+    assert ensure_read_only(out, allowed, 100) == out
+    tree = sqlglot.parse_one(out, read="postgres")
+    assert isinstance(tree, exp.Union)
+    assert int(tree.args["limit"].expression.this) == limit
+    assert not list(tree.this.find_all(exp.Limit))
+    assert not list(tree.expression.find_all(exp.Limit))
 
 
 def test_default_limit(allowed):
     tree = sqlglot.parse_one(ensure_read_only("SELECT * FROM vendors", allowed), read="postgres")
     assert int(tree.args["limit"].expression.this) == 500
+
+
+@pytest.mark.parametrize("max_rows", [0, -1, True, "100"])
+def test_rejects_invalid_max_rows(allowed, max_rows):
+    with pytest.raises(ValueError, match="max_rows"):
+        ensure_read_only("SELECT 1", allowed, max_rows)
+
+
+@pytest.mark.parametrize("allowed_tables", [{"vendors"}, frozenset({""}), frozenset({1})])
+def test_rejects_invalid_allowed_tables(allowed_tables):
+    with pytest.raises(ValueError, match="allowed_tables"):
+        ensure_read_only("SELECT 1", allowed_tables)
 
 
 def test_cte_checks_underlying_tables(allowed):

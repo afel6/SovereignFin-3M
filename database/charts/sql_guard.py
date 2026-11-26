@@ -11,36 +11,49 @@ class UnsafeSQLError(Exception):
         super().__init__(reason)
 
 
+def _check_tree(tree: exp.Expression, allowed_tables: frozenset[str]) -> None:
+    if not isinstance(tree, (exp.Select, exp.Union)):
+        raise UnsafeSQLError("Only one SELECT query is allowed.")
+    forbidden = (exp.DML, exp.DDL, exp.Command, exp.Into, exp.Lock)
+    if any(isinstance(node, forbidden) for node in tree.walk()):
+        raise UnsafeSQLError("Only read-only queries are allowed.")
+    for node in tree.find_all(exp.Func):
+        name = (node.name if isinstance(node, exp.Anonymous) else node.sql_name()).lower()
+        if name in {"pg_sleep", "set_config", "current_setting"} or name.startswith(
+            ("pg_read_", "lo_", "dblink")
+        ):
+            raise UnsafeSQLError("This function is not allowed.")
+    for scope in traverse_scope(tree):
+        for source in scope.sources.values():
+            if isinstance(source, exp.Table) and (
+                source.catalog
+                or (source.db and source.db != "public")
+                or source.name not in allowed_tables
+            ):
+                raise UnsafeSQLError("This table is not allowed.")
+
+
 def ensure_read_only(sql: str, allowed_tables: frozenset[str], max_rows: int = 500) -> str:
     """Allow listed tables unqualified or in the public schema only."""
+    if not isinstance(max_rows, int) or isinstance(max_rows, bool) or max_rows < 1:
+        raise ValueError("max_rows must be a positive integer.")
+    if not isinstance(allowed_tables, frozenset) or not all(
+        isinstance(table, str) and table for table in allowed_tables
+    ):
+        raise ValueError("allowed_tables must be a frozenset of non-empty table names.")
     try:
         statements = sqlglot.parse(sql, read="postgres")
-        if len(statements) != 1 or not isinstance(statements[0], (exp.Select, exp.Union)):
+        if len(statements) != 1 or statements[0] is None:
             raise UnsafeSQLError("Only one SELECT query is allowed.")
         tree = statements[0]
-        forbidden = (exp.DML, exp.DDL, exp.Command, exp.Into, exp.Lock)
-        if any(isinstance(node, forbidden) for node in tree.walk()):
-            raise UnsafeSQLError("Only read-only queries are allowed.")
-        for node in tree.find_all(exp.Func):
-            name = (node.name if isinstance(node, exp.Anonymous) else node.sql_name()).lower()
-            if name in {"pg_sleep", "set_config", "current_setting"} or name.startswith(
-                ("pg_read_", "lo_", "dblink")
-            ):
-                raise UnsafeSQLError("This function is not allowed.")
-        for scope in traverse_scope(tree):
-            for source in scope.sources.values():
-                if isinstance(source, exp.Table):
-                    if (
-                        source.catalog
-                        or (source.db and source.db != "public")
-                        or source.name not in allowed_tables
-                    ):
-                        raise UnsafeSQLError("This table is not allowed.")
+        _check_tree(tree, allowed_tables)
         limit = tree.args.get("limit")
         value = limit.expression if limit else None
         if not isinstance(value, exp.Literal) or not value.is_int or int(value.this) > max_rows:
             tree = tree.limit(max_rows, copy=False)
-        return tree.sql(dialect="postgres")
+        out = tree.sql(dialect="postgres")
+        _check_tree(sqlglot.parse_one(out, read="postgres"), allowed_tables)
+        return out
     except UnsafeSQLError:
         raise
     except Exception as exc:
